@@ -1,13 +1,9 @@
-// Vérifier si la base de données est accessible
-if (typeof foodsDatabase === 'undefined') {
-    console.error('La base de données d\'aliments n\'a pas été chargée correctement.');
-    // Base de données de secours (réduite) au cas où le fichier externe ne se charge pas
-    var foodsDatabase = [
-        { name: "Pomme", calories: 52, category: "Fruits", portion: "1 moyenne (100g)" },
-        { name: "Banane", calories: 89, category: "Fruits", portion: "1 moyenne (100g)" },
-        { name: "Pain", calories: 265, category: "Céréales et féculents", portion: "100g" }
-    ];
-}
+// Déclaration d'une base de données de secours au cas où
+var foodsDatabase = [
+    { name: "Pomme", calories: 52, category: "Fruits", portion: "1 moyenne (100g)" },
+    { name: "Banane", calories: 89, category: "Fruits", portion: "1 moyenne (100g)" },
+    { name: "Pain", calories: 265, category: "Céréales et féculents", portion: "100g" }
+];
 
 // Éléments du DOM
 const foodForm = document.getElementById('food-form');
@@ -347,15 +343,20 @@ foodSearchInput.addEventListener('input', searchFoods);
 foodCategorySelect.addEventListener('change', searchFoods);
 databaseFoodForm.addEventListener('submit', addFoodFromDatabase);
 
-// Initialiser l'application
+// Attendez que le DOM soit complètement chargé avant d'initialiser l'application
 document.addEventListener('DOMContentLoaded', function() {
-    // S'assurer que tous les éléments sont chargés
-    console.log('Application initialisée');
-    console.log('Base de données d\'aliments :', foodsDatabase.length, 'items');
+    // S'assurer que la base de données est chargée
+    if (typeof window.foodsDatabase !== 'undefined') {
+        foodsDatabase = window.foodsDatabase;
+    }
     
     // Initialiser l'interface utilisateur
     updateUI();
     
     // Initialiser les résultats de recherche avec tous les aliments
-    displayFoodResults(foodsDatabase);
+    try {
+        displayFoodResults(foodsDatabase);
+    } catch (error) {
+        console.error("Erreur lors de l'affichage des aliments :", error);
+    }
 });
