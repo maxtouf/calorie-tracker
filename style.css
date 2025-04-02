@@ -27,6 +27,11 @@ h2 {
     margin-bottom: 15px;
 }
 
+h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
 .summary {
     background-color: #fff;
     border-radius: 8px;
@@ -166,6 +171,97 @@ input:focus, select:focus {
     margin-bottom: 30px;
 }
 
+/* Styles pour les onglets */
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-btn {
+    padding: 10px 15px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    color: #3498db;
+}
+
+.tab-btn.active {
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Styles pour les résultats de recherche d'aliments */
+.food-results {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.food-item {
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid #eee;
+}
+
+.food-item:hover {
+    background-color: #f1f1f1;
+}
+
+.food-item:last-child {
+    border-bottom: none;
+}
+
+.food-item-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 500;
+}
+
+.food-item-details {
+    display: flex;
+    justify-content: space-between;
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.selected-food-form {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.food-category {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-left: 5px;
+}
+
+.no-results {
+    padding: 15px;
+    text-align: center;
+    color: #7f8c8d;
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 10px;
@@ -173,5 +269,14 @@ input:focus, select:focus {
     
     .summary, .form-container, .entries-container, .chart-container {
         padding: 15px;
+    }
+    
+    .tabs {
+        flex-direction: column;
+    }
+    
+    .tab-btn {
+        width: 100%;
+        text-align: center;
     }
 }
