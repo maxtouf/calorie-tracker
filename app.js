@@ -206,13 +206,24 @@ function changeTab(tabId) {
     // Activer l'onglet sélectionné
     document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
     document.getElementById(tabId).classList.add('active');
+    
+    // Si on change vers l'onglet de la base de données, afficher tous les aliments
+    if (tabId === 'food-database') {
+        // Réinitialiser les filtres
+        foodSearchInput.value = '';
+        foodCategorySelect.value = 'all';
+        // Afficher tous les aliments
+        displayFoodResults(foodsDatabase);
+    }
 }
 
 function searchFoods() {
     const searchTerm = foodSearchInput.value.toLowerCase();
     const category = foodCategorySelect.value;
     
-    let filteredFoods = foodsDatabase;
+    // Utiliser la base de données globale si disponible
+    let allFoods = window.foodsDatabase || foodsDatabase;
+    let filteredFoods = allFoods;
     
     // Filtrer par catégorie
     if (category !== 'all') {
@@ -233,7 +244,7 @@ function searchFoods() {
 function displayFoodResults(foods) {
     foodResultsDiv.innerHTML = '';
     
-    if (foods.length === 0) {
+    if (!foods || foods.length === 0) {
         foodResultsDiv.innerHTML = '<div class="no-results">Aucun résultat trouvé</div>';
         return;
     }
@@ -274,10 +285,19 @@ function selectFood(food, index) {
 function addFoodFromDatabase(event) {
     event.preventDefault();
     
+    // Utiliser la base de données globale si disponible
+    let allFoods = window.foodsDatabase || foodsDatabase;
+    
     const index = parseInt(dbFoodIndex.value);
-    const food = foodsDatabase[index];
+    const food = allFoods[index];
     const quantity = parseInt(dbFoodQuantity.value);
     const mealType = dbMealType.value;
+    
+    if (!food) {
+        console.error("Aliment non trouvé à l'index:", index);
+        alert("Erreur: Aliment non trouvé. Veuillez réessayer.");
+        return;
+    }
     
     // Calculer les calories en fonction de la quantité
     // On suppose que les portions sont standardisées à 100g/ml
@@ -343,20 +363,32 @@ foodSearchInput.addEventListener('input', searchFoods);
 foodCategorySelect.addEventListener('change', searchFoods);
 databaseFoodForm.addEventListener('submit', addFoodFromDatabase);
 
+// Chargement de la base de données
+function loadFoodDatabase() {
+    console.log("Chargement de la base de données d'aliments...");
+    if (window.foodsDatabase && Array.isArray(window.foodsDatabase)) {
+        console.log(`Base de données globale chargée avec ${window.foodsDatabase.length} aliments`);
+        foodsDatabase = window.foodsDatabase;
+        // Afficher tous les aliments au chargement
+        displayFoodResults(foodsDatabase);
+    } else {
+        console.error("La base de données globale n'est pas disponible ou n'est pas un tableau.");
+    }
+}
+
 // Attendez que le DOM soit complètement chargé avant d'initialiser l'application
 document.addEventListener('DOMContentLoaded', function() {
-    // S'assurer que la base de données est chargée
-    if (typeof window.foodsDatabase !== 'undefined') {
-        foodsDatabase = window.foodsDatabase;
-    }
+    console.log("DOM chargé, initialisation de l'application...");
     
     // Initialiser l'interface utilisateur
     updateUI();
     
-    // Initialiser les résultats de recherche avec tous les aliments
-    try {
-        displayFoodResults(foodsDatabase);
-    } catch (error) {
-        console.error("Erreur lors de l'affichage des aliments :", error);
+    // Vérifier si nous sommes dans l'onglet de la base de données d'aliments
+    if (document.querySelector('[data-tab="food-database"]').classList.contains('active')) {
+        // Charger la base de données
+        loadFoodDatabase();
     }
+    
+    // Ajouter un gestionnaire pour l'onglet de la base de données
+    document.querySelector('[data-tab="food-database"]').addEventListener('click', loadFoodDatabase);
 });
