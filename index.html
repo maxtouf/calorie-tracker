@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Suivi de Calories</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Préchargement des scripts -->
+    <link rel="preload" href="foods-database.js" as="script">
+    <link rel="preload" href="app.js" as="script">
 </head>
 <body>
     <div class="container">
@@ -127,8 +133,76 @@
         </div>
     </div>
 
+    <!-- Inclusion des scripts dans le bon ordre -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Script pour exposer la base de données d'aliments -->
+    <script>
+        // Cette variable contient la base de données complète des aliments
+        window.foodsDatabase = [];
+    </script>
+    
+    <!-- Chargement des scripts de l'application -->
     <script src="foods-database.js"></script>
     <script src="app.js"></script>
+    
+    <!-- Script d'initialisation -->
+    <script>
+        // Fonction pour charger les aliments au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM entièrement chargé, base de données d'aliments disponible:", window.foodsDatabase.length);
+            
+            // Initialisation explicite de la recherche d'aliments en changeant les onglets
+            document.querySelector('[data-tab="food-database"]').addEventListener('click', function() {
+                // Forcer un rechargement de la base de données d'aliments à chaque fois
+                setTimeout(function() {
+                    const allFoods = window.foodsDatabase;
+                    const foodResultsDiv = document.getElementById('food-results');
+                    
+                    // Afficher tous les aliments
+                    if (allFoods && allFoods.length > 0) {
+                        foodResultsDiv.innerHTML = '';
+                        
+                        allFoods.forEach(function(food, index) {
+                            const foodItem = document.createElement('div');
+                            foodItem.className = 'food-item';
+                            foodItem.setAttribute('data-index', index);
+                            
+                            foodItem.innerHTML = `
+                                <div class="food-item-header">
+                                    <span>${food.name}</span>
+                                    <span>${food.calories} cal</span>
+                                </div>
+                                <div class="food-item-details">
+                                    <span class="food-category">${food.category}</span>
+                                    <span>${food.portion}</span>
+                                </div>
+                            `;
+                            
+                            foodItem.addEventListener('click', function() {
+                                // Afficher le formulaire de sélection
+                                const selectedFoodForm = document.getElementById('selected-food-form');
+                                const selectedFoodName = document.getElementById('selected-food-name');
+                                const selectedFoodCalories = document.getElementById('selected-food-calories');
+                                const selectedFoodPortion = document.getElementById('selected-food-portion');
+                                const dbFoodIndex = document.getElementById('db-food-index');
+                                
+                                selectedFoodName.textContent = food.name;
+                                selectedFoodCalories.textContent = food.calories;
+                                selectedFoodPortion.textContent = food.portion;
+                                dbFoodIndex.value = index;
+                                
+                                selectedFoodForm.style.display = 'block';
+                            });
+                            
+                            foodResultsDiv.appendChild(foodItem);
+                        });
+                    } else {
+                        foodResultsDiv.innerHTML = '<div class="no-results">La base de données d\'aliments n\'est pas disponible.</div>';
+                    }
+                }, 100);
+            });
+        });
+    </script>
 </body>
 </html>
