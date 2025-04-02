@@ -1,3 +1,14 @@
+// Vérifier si la base de données est accessible
+if (typeof foodsDatabase === 'undefined') {
+    console.error('La base de données d\'aliments n\'a pas été chargée correctement.');
+    // Base de données de secours (réduite) au cas où le fichier externe ne se charge pas
+    var foodsDatabase = [
+        { name: "Pomme", calories: 52, category: "Fruits", portion: "1 moyenne (100g)" },
+        { name: "Banane", calories: 89, category: "Fruits", portion: "1 moyenne (100g)" },
+        { name: "Pain", calories: 265, category: "Céréales et féculents", portion: "100g" }
+    ];
+}
+
 // Éléments du DOM
 const foodForm = document.getElementById('food-form');
 const foodNameInput = document.getElementById('food-name');
@@ -337,6 +348,14 @@ foodCategorySelect.addEventListener('change', searchFoods);
 databaseFoodForm.addEventListener('submit', addFoodFromDatabase);
 
 // Initialiser l'application
-updateUI();
-// Initialiser les résultats de recherche avec tous les aliments
-displayFoodResults(foodsDatabase);
+document.addEventListener('DOMContentLoaded', function() {
+    // S'assurer que tous les éléments sont chargés
+    console.log('Application initialisée');
+    console.log('Base de données d\'aliments :', foodsDatabase.length, 'items');
+    
+    // Initialiser l'interface utilisateur
+    updateUI();
+    
+    // Initialiser les résultats de recherche avec tous les aliments
+    displayFoodResults(foodsDatabase);
+});
