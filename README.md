@@ -33,6 +33,11 @@ Une application web simple pour suivre votre consommation quotidienne de calorie
 5. Sélectionnez le type de repas (petit-déjeuner, déjeuner, dîner, collation)
 6. Cliquez sur "Ajouter au journal"
 
+## Ressources
+
+- **Base de données d'aliments intégrée** : Disponible directement dans l'application
+- **Liste étendue d'aliments** : Consultez [extended-foods-database.md](extended-foods-database.md) pour une liste complète avec plus de 150 aliments et leurs valeurs caloriques
+
 ## Catégories d'aliments disponibles
 
 - Fruits
