@@ -1,10 +1,3 @@
-// Déclaration d'une base de données de secours au cas où
-var foodsDatabase = [
-    { name: "Pomme", calories: 52, category: "Fruits", portion: "1 moyenne (100g)" },
-    { name: "Banane", calories: 89, category: "Fruits", portion: "1 moyenne (100g)" },
-    { name: "Pain", calories: 265, category: "Céréales et féculents", portion: "100g" }
-];
-
 // Éléments du DOM
 const foodForm = document.getElementById('food-form');
 const foodNameInput = document.getElementById('food-name');
@@ -24,26 +17,23 @@ const tabContents = document.querySelectorAll('.tab-content');
 const foodSearchInput = document.getElementById('food-search');
 const foodCategorySelect = document.getElementById('food-category');
 const foodResultsDiv = document.getElementById('food-results');
-const selectedFoodForm = document.getElementById('selected-food-form');
-const selectedFoodName = document.getElementById('selected-food-name');
-const selectedFoodCalories = document.getElementById('selected-food-calories');
-const selectedFoodPortion = document.getElementById('selected-food-portion');
-const dbFoodQuantity = document.getElementById('db-food-quantity');
-const dbMealType = document.getElementById('db-meal-type');
-const dbFoodIndex = document.getElementById('db-food-index');
 const databaseFoodForm = document.getElementById('database-food-form');
 
 // Initialiser la date d'aujourd'hui pour le filtre
 const today = new Date();
 const formattedDate = today.toISOString().split('T')[0];
-filterDateInput.value = formattedDate;
+if (filterDateInput) {
+    filterDateInput.value = formattedDate;
+}
 
 // État de l'application
 let foodEntries = JSON.parse(localStorage.getItem('foodEntries')) || [];
 let calorieGoal = parseInt(localStorage.getItem('calorieGoal')) || 2000;
 
 // Mettre à jour l'objectif affiché
-calorieGoalSpan.textContent = calorieGoal;
+if (calorieGoalSpan) {
+    calorieGoalSpan.textContent = calorieGoal;
+}
 
 // Initialiser le graphique
 let chart = null;
@@ -136,6 +126,9 @@ function updateUI() {
 }
 
 function updateChart() {
+    // Vérifier si l'élément existe
+    if (!caloriesChart) return;
+    
     // Préparer les données pour les 7 derniers jours
     const dates = [];
     const calorieData = [];
@@ -206,24 +199,20 @@ function changeTab(tabId) {
     // Activer l'onglet sélectionné
     document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
     document.getElementById(tabId).classList.add('active');
-    
-    // Si on change vers l'onglet de la base de données, afficher tous les aliments
-    if (tabId === 'food-database') {
-        // Réinitialiser les filtres
-        foodSearchInput.value = '';
-        foodCategorySelect.value = 'all';
-        // Afficher tous les aliments
-        displayFoodResults(foodsDatabase);
-    }
 }
 
 function searchFoods() {
     const searchTerm = foodSearchInput.value.toLowerCase();
     const category = foodCategorySelect.value;
     
-    // Utiliser la base de données globale si disponible
-    let allFoods = window.foodsDatabase || foodsDatabase;
-    let filteredFoods = allFoods;
+    // S'assurer que la base de données est disponible
+    if (!window.foodsDatabase || !Array.isArray(window.foodsDatabase)) {
+        console.error("La base de données d'aliments n'est pas disponible");
+        return;
+    }
+    
+    // Filtrer les aliments
+    let filteredFoods = window.foodsDatabase;
     
     // Filtrer par catégorie
     if (category !== 'all') {
@@ -242,6 +231,8 @@ function searchFoods() {
 }
 
 function displayFoodResults(foods) {
+    if (!foodResultsDiv) return;
+    
     foodResultsDiv.innerHTML = '';
     
     if (!foods || foods.length === 0) {
@@ -265,93 +256,75 @@ function displayFoodResults(foods) {
             </div>
         `;
         
-        foodItem.addEventListener('click', () => selectFood(food, index));
+        foodItem.addEventListener('click', function() {
+            // Afficher le formulaire de sélection
+            const selectedFoodForm = document.getElementById('selected-food-form');
+            const selectedFoodName = document.getElementById('selected-food-name');
+            const selectedFoodCalories = document.getElementById('selected-food-calories');
+            const selectedFoodPortion = document.getElementById('selected-food-portion');
+            const dbFoodIndex = document.getElementById('db-food-index');
+            
+            selectedFoodName.textContent = food.name;
+            selectedFoodCalories.textContent = food.calories;
+            selectedFoodPortion.textContent = food.portion;
+            dbFoodIndex.value = index;
+            
+            selectedFoodForm.style.display = 'block';
+        });
         
         foodResultsDiv.appendChild(foodItem);
     });
 }
 
-function selectFood(food, index) {
-    // Afficher les détails de l'aliment sélectionné
-    selectedFoodName.textContent = food.name;
-    selectedFoodCalories.textContent = food.calories;
-    selectedFoodPortion.textContent = food.portion;
-    dbFoodIndex.value = index;
-    
-    // Afficher le formulaire
-    selectedFoodForm.style.display = 'block';
+// Événements du formulaire manuel
+if (foodForm) {
+    foodForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = foodNameInput.value.trim();
+        const calories = parseInt(caloriesInput.value);
+        const mealType = mealTypeSelect.value;
+        
+        addFoodEntry(name, calories, mealType);
+        
+        // Réinitialiser le formulaire
+        foodNameInput.value = '';
+        caloriesInput.value = '';
+        foodNameInput.focus();
+    });
 }
 
-function addFoodFromDatabase(event) {
-    event.preventDefault();
-    
-    // Utiliser la base de données globale si disponible
-    let allFoods = window.foodsDatabase || foodsDatabase;
-    
-    const index = parseInt(dbFoodIndex.value);
-    const food = allFoods[index];
-    const quantity = parseInt(dbFoodQuantity.value);
-    const mealType = dbMealType.value;
-    
-    if (!food) {
-        console.error("Aliment non trouvé à l'index:", index);
-        alert("Erreur: Aliment non trouvé. Veuillez réessayer.");
-        return;
-    }
-    
-    // Calculer les calories en fonction de la quantité
-    // On suppose que les portions sont standardisées à 100g/ml
-    const calories = Math.round(food.calories * (quantity / 100));
-    
-    // Ajouter l'entrée
-    addFoodEntry(`${food.name} (${quantity}g/ml)`, calories, mealType);
-    
-    // Réinitialiser le formulaire
-    dbFoodQuantity.value = '100';
-    selectedFoodForm.style.display = 'none';
-    
-    // Changer d'onglet pour voir le journal mis à jour
-    changeTab('manual-entry');
+// Événements pour le journal alimentaire
+if (foodEntriesDiv) {
+    foodEntriesDiv.addEventListener('click', function(e) {
+        if (e.target.classList.contains('delete-btn')) {
+            const id = parseInt(e.target.getAttribute('data-id'));
+            deleteFoodEntry(id);
+        }
+    });
 }
 
-// Gestionnaires d'événements pour l'entrée manuelle
-foodForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const name = foodNameInput.value.trim();
-    const calories = parseInt(caloriesInput.value);
-    const mealType = mealTypeSelect.value;
-    
-    addFoodEntry(name, calories, mealType);
-    
-    // Réinitialiser le formulaire
-    foodNameInput.value = '';
-    caloriesInput.value = '';
-    foodNameInput.focus();
-});
+// Événement pour la date de filtrage
+if (filterDateInput) {
+    filterDateInput.addEventListener('change', updateUI);
+}
 
-foodEntriesDiv.addEventListener('click', function(e) {
-    if (e.target.classList.contains('delete-btn')) {
-        const id = parseInt(e.target.getAttribute('data-id'));
-        deleteFoodEntry(id);
-    }
-});
+// Événement pour modifier l'objectif
+if (editGoalBtn) {
+    editGoalBtn.addEventListener('click', function() {
+        const newGoal = prompt('Entrez votre nouvel objectif de calories quotidien:', calorieGoal);
+        const parsedGoal = parseInt(newGoal);
+        
+        if (!isNaN(parsedGoal) && parsedGoal > 0) {
+            calorieGoal = parsedGoal;
+            calorieGoalSpan.textContent = calorieGoal;
+            saveToLocalStorage();
+            updateUI();
+        }
+    });
+}
 
-filterDateInput.addEventListener('change', updateUI);
-
-editGoalBtn.addEventListener('click', function() {
-    const newGoal = prompt('Entrez votre nouvel objectif de calories quotidien:', calorieGoal);
-    const parsedGoal = parseInt(newGoal);
-    
-    if (!isNaN(parsedGoal) && parsedGoal > 0) {
-        calorieGoal = parsedGoal;
-        calorieGoalSpan.textContent = calorieGoal;
-        saveToLocalStorage();
-        updateUI();
-    }
-});
-
-// Gestionnaires d'événements pour la base de données d'aliments
+// Événements pour les onglets
 tabBtns.forEach(btn => {
     btn.addEventListener('click', function() {
         const tabId = this.getAttribute('data-tab');
@@ -359,36 +332,59 @@ tabBtns.forEach(btn => {
     });
 });
 
-foodSearchInput.addEventListener('input', searchFoods);
-foodCategorySelect.addEventListener('change', searchFoods);
-databaseFoodForm.addEventListener('submit', addFoodFromDatabase);
-
-// Chargement de la base de données
-function loadFoodDatabase() {
-    console.log("Chargement de la base de données d'aliments...");
-    if (window.foodsDatabase && Array.isArray(window.foodsDatabase)) {
-        console.log(`Base de données globale chargée avec ${window.foodsDatabase.length} aliments`);
-        foodsDatabase = window.foodsDatabase;
-        // Afficher tous les aliments au chargement
-        displayFoodResults(foodsDatabase);
-    } else {
-        console.error("La base de données globale n'est pas disponible ou n'est pas un tableau.");
-    }
+// Événements pour la recherche d'aliments
+if (foodSearchInput) {
+    foodSearchInput.addEventListener('input', searchFoods);
 }
 
-// Attendez que le DOM soit complètement chargé avant d'initialiser l'application
+if (foodCategorySelect) {
+    foodCategorySelect.addEventListener('change', searchFoods);
+}
+
+// Événement pour ajouter un aliment depuis la base de données
+if (databaseFoodForm) {
+    databaseFoodForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const dbFoodIndex = document.getElementById('db-food-index');
+        const dbFoodQuantity = document.getElementById('db-food-quantity');
+        const dbMealType = document.getElementById('db-meal-type');
+        
+        const index = parseInt(dbFoodIndex.value);
+        const quantity = parseInt(dbFoodQuantity.value);
+        const mealType = dbMealType.value;
+        
+        // Vérifier que la base de données est disponible
+        if (!window.foodsDatabase || !Array.isArray(window.foodsDatabase)) {
+            console.error("La base de données d'aliments n'est pas disponible");
+            return;
+        }
+        
+        const food = window.foodsDatabase[index];
+        
+        if (!food) {
+            console.error("Aliment non trouvé à l'index:", index);
+            alert("Erreur: Aliment non trouvé. Veuillez réessayer.");
+            return;
+        }
+        
+        // Calculer les calories en fonction de la quantité
+        const calories = Math.round(food.calories * (quantity / 100));
+        
+        // Ajouter l'entrée
+        addFoodEntry(`${food.name} (${quantity}g/ml)`, calories, mealType);
+        
+        // Réinitialiser le formulaire
+        dbFoodQuantity.value = '100';
+        document.getElementById('selected-food-form').style.display = 'none';
+        
+        // Changer d'onglet pour voir le journal mis à jour
+        changeTab('manual-entry');
+    });
+}
+
+// Initialiser l'interface
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM chargé, initialisation de l'application...");
-    
-    // Initialiser l'interface utilisateur
+    console.log("DOM chargé, initialisation de l'interface utilisateur");
     updateUI();
-    
-    // Vérifier si nous sommes dans l'onglet de la base de données d'aliments
-    if (document.querySelector('[data-tab="food-database"]').classList.contains('active')) {
-        // Charger la base de données
-        loadFoodDatabase();
-    }
-    
-    // Ajouter un gestionnaire pour l'onglet de la base de données
-    document.querySelector('[data-tab="food-database"]').addEventListener('click', loadFoodDatabase);
 });
