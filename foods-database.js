@@ -1,5 +1,5 @@
 // Base de données d'aliments courants avec leurs valeurs caloriques
-const foodsDatabase = [
+window.foodsDatabase = [
     // Fruits
     { name: "Pomme", calories: 52, category: "Fruits", portion: "1 moyenne (100g)" },
     { name: "Banane", calories: 89, category: "Fruits", portion: "1 moyenne (100g)" },
