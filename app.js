@@ -11,6 +11,21 @@ const filterDateInput = document.getElementById('filter-date');
 const editGoalBtn = document.getElementById('edit-goal');
 const caloriesChart = document.getElementById('calories-chart');
 
+// Éléments pour la base de données d'aliments
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+const foodSearchInput = document.getElementById('food-search');
+const foodCategorySelect = document.getElementById('food-category');
+const foodResultsDiv = document.getElementById('food-results');
+const selectedFoodForm = document.getElementById('selected-food-form');
+const selectedFoodName = document.getElementById('selected-food-name');
+const selectedFoodCalories = document.getElementById('selected-food-calories');
+const selectedFoodPortion = document.getElementById('selected-food-portion');
+const dbFoodQuantity = document.getElementById('db-food-quantity');
+const dbMealType = document.getElementById('db-meal-type');
+const dbFoodIndex = document.getElementById('db-food-index');
+const databaseFoodForm = document.getElementById('database-food-form');
+
 // Initialiser la date d'aujourd'hui pour le filtre
 const today = new Date();
 const formattedDate = today.toISOString().split('T')[0];
@@ -175,7 +190,104 @@ function updateChart() {
     });
 }
 
-// Gestionnaires d'événements
+// Fonctions pour la base de données d'aliments
+function changeTab(tabId) {
+    // Désactiver tous les onglets
+    tabBtns.forEach(btn => btn.classList.remove('active'));
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    // Activer l'onglet sélectionné
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+}
+
+function searchFoods() {
+    const searchTerm = foodSearchInput.value.toLowerCase();
+    const category = foodCategorySelect.value;
+    
+    let filteredFoods = foodsDatabase;
+    
+    // Filtrer par catégorie
+    if (category !== 'all') {
+        filteredFoods = filteredFoods.filter(food => food.category === category);
+    }
+    
+    // Filtrer par terme de recherche
+    if (searchTerm) {
+        filteredFoods = filteredFoods.filter(food => 
+            food.name.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    // Afficher les résultats
+    displayFoodResults(filteredFoods);
+}
+
+function displayFoodResults(foods) {
+    foodResultsDiv.innerHTML = '';
+    
+    if (foods.length === 0) {
+        foodResultsDiv.innerHTML = '<div class="no-results">Aucun résultat trouvé</div>';
+        return;
+    }
+    
+    foods.forEach((food, index) => {
+        const foodItem = document.createElement('div');
+        foodItem.className = 'food-item';
+        foodItem.setAttribute('data-index', index);
+        
+        foodItem.innerHTML = `
+            <div class="food-item-header">
+                <span>${food.name}</span>
+                <span>${food.calories} cal</span>
+            </div>
+            <div class="food-item-details">
+                <span class="food-category">${food.category}</span>
+                <span>${food.portion}</span>
+            </div>
+        `;
+        
+        foodItem.addEventListener('click', () => selectFood(food, index));
+        
+        foodResultsDiv.appendChild(foodItem);
+    });
+}
+
+function selectFood(food, index) {
+    // Afficher les détails de l'aliment sélectionné
+    selectedFoodName.textContent = food.name;
+    selectedFoodCalories.textContent = food.calories;
+    selectedFoodPortion.textContent = food.portion;
+    dbFoodIndex.value = index;
+    
+    // Afficher le formulaire
+    selectedFoodForm.style.display = 'block';
+}
+
+function addFoodFromDatabase(event) {
+    event.preventDefault();
+    
+    const index = parseInt(dbFoodIndex.value);
+    const food = foodsDatabase[index];
+    const quantity = parseInt(dbFoodQuantity.value);
+    const mealType = dbMealType.value;
+    
+    // Calculer les calories en fonction de la quantité
+    // On suppose que les portions sont standardisées à 100g/ml
+    const calories = Math.round(food.calories * (quantity / 100));
+    
+    // Ajouter l'entrée
+    addFoodEntry(`${food.name} (${quantity}g/ml)`, calories, mealType);
+    
+    // Réinitialiser le formulaire
+    dbFoodQuantity.value = '100';
+    selectedFoodForm.style.display = 'none';
+    
+    // Changer d'onglet pour voir le journal mis à jour
+    changeTab('manual-entry');
+}
+
+// Gestionnaires d'événements pour l'entrée manuelle
 foodForm.addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -212,5 +324,19 @@ editGoalBtn.addEventListener('click', function() {
     }
 });
 
-// Initialiser l'interface
+// Gestionnaires d'événements pour la base de données d'aliments
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+        changeTab(tabId);
+    });
+});
+
+foodSearchInput.addEventListener('input', searchFoods);
+foodCategorySelect.addEventListener('change', searchFoods);
+databaseFoodForm.addEventListener('submit', addFoodFromDatabase);
+
+// Initialiser l'application
 updateUI();
+// Initialiser les résultats de recherche avec tous les aliments
+displayFoodResults(foodsDatabase);
