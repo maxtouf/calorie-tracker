@@ -28,26 +28,86 @@
 
         <div class="form-container">
             <h2>Ajouter un aliment</h2>
-            <form id="food-form">
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="manual-entry">Entrée manuelle</button>
+                <button class="tab-btn" data-tab="food-database">Base d'aliments</button>
+            </div>
+            
+            <div class="tab-content active" id="manual-entry">
+                <form id="food-form">
+                    <div class="form-group">
+                        <label for="food-name">Aliment:</label>
+                        <input type="text" id="food-name" placeholder="Nom de l'aliment" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="calories">Calories:</label>
+                        <input type="number" id="calories" placeholder="Calories" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="meal-type">Repas:</label>
+                        <select id="meal-type">
+                            <option value="breakfast">Petit-déjeuner</option>
+                            <option value="lunch">Déjeuner</option>
+                            <option value="dinner">Dîner</option>
+                            <option value="snack">Collation</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Ajouter</button>
+                </form>
+            </div>
+            
+            <div class="tab-content" id="food-database">
                 <div class="form-group">
-                    <label for="food-name">Aliment:</label>
-                    <input type="text" id="food-name" placeholder="Nom de l'aliment" required>
+                    <label for="food-search">Rechercher un aliment:</label>
+                    <input type="text" id="food-search" placeholder="Rechercher...">
                 </div>
+                
                 <div class="form-group">
-                    <label for="calories">Calories:</label>
-                    <input type="number" id="calories" placeholder="Calories" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="meal-type">Repas:</label>
-                    <select id="meal-type">
-                        <option value="breakfast">Petit-déjeuner</option>
-                        <option value="lunch">Déjeuner</option>
-                        <option value="dinner">Dîner</option>
-                        <option value="snack">Collation</option>
+                    <label for="food-category">Catégorie:</label>
+                    <select id="food-category">
+                        <option value="all">Toutes les catégories</option>
+                        <option value="Fruits">Fruits</option>
+                        <option value="Légumes">Légumes</option>
+                        <option value="Viandes">Viandes</option>
+                        <option value="Poissons">Poissons</option>
+                        <option value="Produits laitiers">Produits laitiers</option>
+                        <option value="Céréales et féculents">Céréales et féculents</option>
+                        <option value="Légumineuses">Légumineuses</option>
+                        <option value="Noix et graines">Noix et graines</option>
+                        <option value="Sucreries et desserts">Sucreries et desserts</option>
+                        <option value="Boissons">Boissons</option>
+                        <option value="Plats préparés">Plats préparés</option>
                     </select>
                 </div>
-                <button type="submit" class="btn">Ajouter</button>
-            </form>
+                
+                <div id="food-results" class="food-results">
+                    <!-- Les résultats de recherche seront ajoutés ici dynamiquement -->
+                </div>
+                
+                <div class="selected-food-form" id="selected-food-form" style="display: none;">
+                    <h3>Aliment sélectionné: <span id="selected-food-name"></span></h3>
+                    <p><span id="selected-food-calories"></span> calories pour <span id="selected-food-portion"></span></p>
+                    
+                    <form id="database-food-form">
+                        <div class="form-group">
+                            <label for="db-food-quantity">Quantité (en grammes/ml):</label>
+                            <input type="number" id="db-food-quantity" placeholder="Quantité" value="100" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="db-meal-type">Repas:</label>
+                            <select id="db-meal-type">
+                                <option value="breakfast">Petit-déjeuner</option>
+                                <option value="lunch">Déjeuner</option>
+                                <option value="dinner">Dîner</option>
+                                <option value="snack">Collation</option>
+                            </select>
+                        </div>
+                        <input type="hidden" id="db-food-index" value="">
+                        <button type="submit" class="btn">Ajouter au journal</button>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <div class="entries-container">
@@ -68,6 +128,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="foods-database.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
